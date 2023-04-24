@@ -33,18 +33,22 @@ create edge cluster
 
 1st cluster
 
-curl -X POST -u 'user:password' "http://192.168.1.172:8080/create" -d '{"edge_cluster_name": "edge-9"}' -H "Content-Type: application/json"
+curl -X POST -u 'user:password' "http://192.168.1.172:8080/create" -d '{"edge_cluster_name": "edge-12"}' -H "Content-Type: application/json"
 
-minikube start    --driver=kvm2 --memory 6192 --cpus 8 --kubernetes-version v1.24.4 -p edge-9
+minikube start    --driver=kvm2 --memory 6192 --cpus 8 --kubernetes-version v1.24.4 -p edge-12
+k apply -f http://192.168.1.172/edge-12.yaml
 
 k apply -f link
 
 change to control plane/default ctx
 
-TOKEN=$(kubectl -n chisel-server get secret edge-9-token -o json | jq -r '.data["edge-access-token"]' | base64 --decode)
+TOKEN12=$(kubectl -n chisel-server get secret edge-12-token -o json | jq -r '.data["edge-access-token"]' | base64 --decode)
+CURL now
 
-curl
+curl -X POST -u 'user:password' "http://192.168.1.172:8080/create" -d '{"edge_cluster_name": "edge-13"}' -H "Content-Type: application/json"
+minikube start    --driver=kvm2 --memory 6192 --cpus 8 --kubernetes-version v1.24.4 -p edge-13
+k apply -f http://192.168.1.172/edge-13.yaml
 
-curl -X POST -u 'user:password' "http://192.168.1.172:8080/create" -d '{"edge_cluster_name": "edge-10"}' -H "Content-Type: application/json"
-minikube start    --driver=kvm2 --memory 6192 --cpus 8 --kubernetes-version v1.24.4 -p edge-10
-TOKEN=$(kubectl -n chisel-server get secret edge-10-token -o json | jq -r '.data["edge-access-token"]' | base64 --decode)
+change context to default 
+
+TOKEN13=$(kubectl -n chisel-server get secret edge-13-token -o json | jq -r '.data["edge-access-token"]' | base64 --decode)
