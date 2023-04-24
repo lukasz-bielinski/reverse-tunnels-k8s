@@ -1,0 +1,29 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: ServersTransport
+metadata:
+  name: register-transport
+  namespace: chisel-server
+spec:
+  serverName: chisel-register.lan
+  insecureSkipVerify: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chisel-register
+  namespace: chisel-server
+  annotations:
+    traefik.ingress.kubernetes.io/service.serversscheme: http
+    traefik.ingress.kubernetes.io/service.serverstransport: chisel-server-register-transport@kubernetescrd
+spec:
+  selector:
+    app: chisel-register
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: chisel-register
+  type: ClusterIP
+
+---

@@ -1,0 +1,29 @@
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: self-signed-issuer
+    kubernetes.io/ingress.class: traefik
+  name: chisel-server
+  namespace: chisel-server
+
+spec:
+  rules:
+  - host: chisel-server.lan
+    http:
+      paths:
+      - backend:
+          service:
+            name: chisel-server
+            port:
+              number: 80
+        path: "/"
+        pathType: Prefix
+  tls:
+  - hosts:
+    - chisel-server
+#    secretName: server-tls-self
+    secretName: chisel-server
+---

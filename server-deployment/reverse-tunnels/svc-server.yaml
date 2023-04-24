@@ -1,0 +1,16 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: chisel-server
+  namespace: chisel-server
+spec:
+  selector:
+    app: chisel-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: chisel-server
+  type: ClusterIP
+

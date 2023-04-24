@@ -1,0 +1,32 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: ServersTransport
+metadata:
+  name: tunnel-transport
+  namespace: chisel-server
+spec:
+  serverName: chisel-tunnel.lan
+  insecureSkipVerify: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    traefik.ingress.kubernetes.io/service.serversscheme: https
+    traefik.ingress.kubernetes.io/service.serverstransport: chisel-server-tunnel-transport@kubernetescrd
+  name: chisel-tunnel
+  namespace: chisel-server
+spec:
+  selector:
+    app: chisel-server
+  ports:
+    - protocol: TCP
+      port: 1111
+      targetPort: 1111
+      name: chisel-client-1
+    - protocol: TCP
+      port: 2222
+      targetPort: 2222
+      name: chisel-client-2
+  type: ClusterIP
+---

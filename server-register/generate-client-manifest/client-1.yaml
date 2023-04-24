@@ -1,0 +1,236 @@
+## register pod, which creates access token on edge and send it to the control plane
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chisel-client
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chisel-register
+  namespace: chisel-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chisel-register
+  template:
+    metadata:
+      labels:
+        app: chisel-register
+    spec:
+      containers:
+        - name: chisel-register
+          image: jpillora/chisel
+          args:
+            - client
+            - -v
+            - --keepalive=10s
+            - --tls-skip-verify
+            - https://chisel-register.lan
+            - 0.0.0.0:1080:socks
+          env:
+            - name: AUTH
+              value: "client-1:client-1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chisel-register
+  namespace: chisel-client
+spec:
+  selector:
+    app: chisel-register
+  ports:
+    - protocol: TCP
+      port: 1080
+      targetPort: 1080
+      name: chisel-register
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chisel-register-create-permissions-on-control-plane
+  namespace: chisel-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ubuntu
+  template:
+    metadata:
+      labels:
+        app: ubuntu
+    spec:
+      containers:
+        - name: ubuntu
+          image: ubuntu:latest
+          command: ["/bin/bash"]
+          args: ["/config/create-secret-on-cp-over-socks.sh"]
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: gen-token-over-socks
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: edge-access-token
+  namespace: chisel-client
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: edge-access-tokencluster-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: edge-access-token
+    namespace: chisel-client
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: chsiel-client-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: chisel-client
+---
+# reverse tunnel
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chisel
+  namespace: chisel-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chisel
+  template:
+    metadata:
+      labels:
+        app: chisel
+    spec:
+      containers:
+        - name: chisel
+          image: jpillora/chisel
+          args:
+            - client
+            - -v
+            - --keepalive=10s
+            - --tls-skip-verify
+            - https://chisel-server.lan
+            - R:1111:kubernetes.default.svc.cluster.local:443
+          env:
+            - name: AUTH
+              value: "client-1:client-1"
+---
+## BELOW auto-generated from script generate-manifest.sh
+apiVersion: v1
+data:
+  cp-access-token: ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNkluVlJWVTVqV1MxNWQzcEhSbUZJYTJGR2IybE9PWEZGVlRZNGExSlZUVlpTUVd4elkwbFlhRzVEU0RnaWZRLmV5SmhkV1FpT2xzaWFIUjBjSE02THk5cmRXSmxjbTVsZEdWekxtUmxabUYxYkhRdWMzWmpMbU5zZFhOMFpYSXViRzlqWVd3aUxDSnJNM01pWFN3aVpYaHdJam94TmpneU16TTNNVGcwTENKcFlYUWlPakUyT0RJek16TTFPRFFzSW1semN5STZJbWgwZEhCek9pOHZhM1ZpWlhKdVpYUmxjeTVrWldaaGRXeDBMbk4yWXk1amJIVnpkR1Z5TG14dlkyRnNJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5STZleUp1WVcxbGMzQmhZMlVpT2lKamFHbHpaV3d0YzJWeWRtVnlJaXdpYzJWeWRtbGpaV0ZqWTI5MWJuUWlPbnNpYm1GdFpTSTZJbU5vYVhObGJDMXlaV2RwYzNSbGNpMXpZU0lzSW5WcFpDSTZJbVEyT0RJMFpXUTNMVE5tWkRZdE5HVmpOQzFpTVRFeExUVmtaREEwWmpVMk1XTTVNQ0o5ZlN3aWJtSm1Jam94TmpneU16TXpOVGcwTENKemRXSWlPaUp6ZVhOMFpXMDZjMlZ5ZG1salpXRmpZMjkxYm5RNlkyaHBjMlZzTFhObGNuWmxjanBqYUdselpXd3RjbVZuYVhOMFpYSXRjMkVpZlEuaXhDMjRJMUNvQmh5clpHaEdNRTV3Y3N3MmFHam41aFZ5NnFkam1uXy1pVzN4SG15WjRJREN3bkRGVjlPM1M4RWZyd2Q1WHVaSXBBUjMybXRWcmtjTHpMUmR4RDFJdElPOHV6RFZDSHdRazJKSFFwSS1qMlVSbW9rS3U4UUJtTGppdHRCQnF3VmRLZzVwNE1INGNRSFZZaHlyYzlhckViYWdOTHg4ZnJ3elE5cHhkMjBvSm9yZkV4b2FfdHNja2ZaUTlTU1Fmb0pfTHBkcE1hLVluUFpKSW5ZbUs3N3VINnFXN05SbDVLcUNjaWdlWjBUYlFDZi1KeEFCWXQyVTFUd3lTTG1SNm92U1RyVDNDTHJLWFZtbzhaX1Nfb3BvSFZHM1duTjRHbG9zY1BINWVCZjhhVUZ0V2lHa2tSRHNQWFNES0RxZDViVXJUQTE2Z21nR0hKUF93
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: cp-access-token
+  namespace: chisel-client
+---
+apiVersion: v1
+data:
+  create-secret-on-cp-over-socks.sh: |
+    #!/bin/bash
+
+    apt update
+    apt install -y jq curl apt-transport-https ca-certificates curl sudo gnupg
+    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+    echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+
+    # Update package list and install kubectl
+    sudo apt-get update
+    sudo apt-get install -y kubectl
+
+    secret_name="cp-access-token"
+    namespace="chisel-client"
+
+    while true; do
+      secret=$(kubectl -n "$namespace" get secret "$secret_name" --ignore-not-found)
+      if [[ -n "$secret" ]]; then
+        echo "Secret '$secret_name' found in namespace '$namespace'."
+        break
+      else
+        echo "Secret '$secret_name' not found in namespace '$namespace'. Retrying in 5 seconds..."
+        sleep 5
+      fi
+    done
+
+    TOKEN=$(kubectl get secret cp-access-token -o json | jq -r '.data["cp-access-token"]' | base64 --decode)
+
+    #curl -x socks5h://chisel-register:1080 -k -H "Authorization:Bearer $TOKEN" -s https://kubernetes.default.svc.cluster.local/api/v1/namespaces/kube-system/pods
+
+    # create edge access token
+    EDGE_ACCESS_TOKEN="$(kubectl create token edge-access-token -n chisel-client)"
+
+    # Set your Kubernetes API server address and bearer token
+    API_SERVER="https://kubernetes.default.svc.cluster.local"
+
+    # Set the desired secret metadata
+    NAMESPACE="chisel-server"
+    SECRET_NAME="edge-access-token"
+    KEY="edge-access-token"
+    VALUE=$EDGE_ACCESS_TOKEN
+
+    # Base64 encode the value
+    ENCODED_VALUE=$(echo -n "$EDGE_ACCESS_TOKEN" | base64 -w 0)
+
+    # Create a JSON payload for the secret
+    generate_post_data() {
+      cat <<EOF
+      {
+        "apiVersion": "v1",
+        "data": {
+          "${SECRET_NAME}": "${ENCODED_VALUE}"
+        },
+        "kind": "Secret",
+        "metadata": {
+          "name": "${SECRET_NAME}",
+          "namespace":  "${NAMESPACE}"
+        },
+        "type": "Opaque"
+      }
+    EOF
+    }
+
+    echo "show json"
+    generate_post_data
+
+    # delete old one
+    # create access token to edge in secret on control plane
+    curl -x socks5h://chisel-register:1080 -k -X DELETE "$API_SERVER/api/v1/namespaces/$NAMESPACE/secrets/edge-access-token" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $TOKEN"
+
+    # create access token to edge in secret on control plane
+    curl -x socks5h://chisel-register:1080 -k -X POST "$API_SERVER/api/v1/namespaces/$NAMESPACE/secrets" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $TOKEN" \
+      --data "$(generate_post_data)"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: gen-token-over-socks
+  namespace: chisel-client

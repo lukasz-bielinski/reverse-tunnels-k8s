@@ -1,0 +1,187 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: chisel-server
+data:
+  nginx.conf: |
+    user  nginx;
+    worker_processes  1;
+
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+
+    events {
+        worker_connections  1024;
+    }
+
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+
+        log_format  main  '\$remote_addr - \$remote_user [\$time_local] "\$request" '
+                          '\$status \$body_bytes_sent "\$http_referer" '
+                          '"\$http_user_agent" "\$http_x_forwarded_for"';
+
+        access_log  /var/log/nginx/access.log  main;
+
+        sendfile        on;
+        #tcp_nopush     on;
+
+        keepalive_timeout  65;
+
+        #gzip  on;
+
+        server {
+            listen       80;
+            server_name  localhost;
+
+            location / {
+                root   /usr/share/nginx/html;
+                index  index.html index.htm;
+            }
+
+            location /cgi-bin/ {
+                root   /usr/share/nginx/html;
+                include /etc/nginx/fastcgi_params;
+                fastcgi_pass  unix:/var/run/fcgiwrap.socket;
+                fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+            }
+        }
+    }
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-cgi
+  namespace: chisel-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-cgi
+  template:
+    metadata:
+      labels:
+        app: nginx-cgi
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.21
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: cgi-bin
+              mountPath: /usr/share/nginx/html/cgi-bin/process-input.sh
+              subPath: process-input.sh
+            - name: fcgiwrap-socket
+              mountPath: /var/run/fcgiwrap
+      initContainers:
+        - name: install-fcgiwrap
+          image: lukaszbielinski/nginx-cgi
+          imagePullPolicy: Always
+#          image: nginx:1.21
+#          command:
+#            - /bin/sh
+#            - -c
+#            - apt update && apt install -y fcgiwrap && mkdir /run/fcgiwrap && chown www-data:www-data /run/fcgiwrap
+          volumeMounts:
+            - name: fcgiwrap-socket
+              mountPath: /run/fcgiwrap
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+        - name: cgi-bin
+          configMap:
+            name: cgi-bin
+            defaultMode: 0555 # Make the script executable
+        - name: fcgiwrap-socket
+          emptyDir: {}
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: chisel-server
+spec:
+  selector:
+    app: ginx-cgi
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: nginx-cgi
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cgi-bin
+  namespace: chisel-server
+data:
+  process-input.sh: |
+    #!/bin/bash
+    #!/bin/bash
+
+    # Read input data
+      read -r input_length
+      IFS='=' read -r key value
+      
+      # Decode URL-encoded input value
+      decoded_value=$(echo -e "$(echo "$value" | sed 's/+/ /g;s/%\(..\)/\\x\1/g;')")
+    
+    # Your script logic here
+    echo "The input value is: $decoded_value"
+    
+    # Set the directory to list files from
+      dir_to_list="/path/to/your/directory"
+      
+      # List files in the directory
+      file_list=$(ls "$dir_to_list")
+    
+    # Return the response
+    echo "Content-Type: text/html"
+      echo
+      
+      # Output the processed input and the file list
+      cat <<EOF
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Processed Input and File List</title>
+      </head>
+      <body>
+      <h1>Processed Input:</h1>
+      <p>$decoded_value</p>
+      
+      <h1>File List:</h1>
+      <ul>
+      EOF
+      
+      for file in $file_list; do
+      # Encode file path for URL
+      url_encoded_file=$(echo "$file" | awk -v ORS="" '{ gsub(/./, "%&") } 1')
+      
+      # Generate the file download URL
+      file_download_url="/files/$url_encoded_file"
+      
+      echo "<li><a href=\"$file_download_url\">$file</a></li>"
+      done
+      
+      cat <<EOF
+      </ul>
+      </body>
+      </html>
+      EOF
+    

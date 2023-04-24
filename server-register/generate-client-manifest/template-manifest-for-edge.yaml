@@ -1,0 +1,143 @@
+## register pod, which creates access token on edge and send it to the control plane
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chisel-client
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chisel-register
+  namespace: chisel-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chisel-register
+  template:
+    metadata:
+      labels:
+        app: chisel-register
+    spec:
+      containers:
+        - name: chisel-register
+          image: jpillora/chisel
+          args:
+            - client
+            - -v
+            - --keepalive=10s
+            - --tls-skip-verify
+            - https://chisel-register.lan
+            - 0.0.0.0:1080:socks
+          env:
+            - name: AUTH
+              value: "client-1:client-1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chisel-register
+  namespace: chisel-client
+spec:
+  selector:
+    app: chisel-register
+  ports:
+    - protocol: TCP
+      port: 1080
+      targetPort: 1080
+      name: chisel-register
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chisel-register-create-permissions-on-control-plane
+  namespace: chisel-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ubuntu
+  template:
+    metadata:
+      labels:
+        app: ubuntu
+    spec:
+      containers:
+        - name: ubuntu
+          image: ubuntu:latest
+          command: ["/bin/bash"]
+          args: ["/config/create-secret-on-cp-over-socks.sh"]
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: gen-token-over-socks
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: edge-access-token
+  namespace: chisel-client
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: edge-access-tokencluster-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: edge-access-token
+    namespace: chisel-client
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: chsiel-client-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: chisel-client
+---
+# reverse tunnel
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chisel
+  namespace: chisel-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chisel
+  template:
+    metadata:
+      labels:
+        app: chisel
+    spec:
+      containers:
+        - name: chisel
+          image: jpillora/chisel
+          args:
+            - client
+            - -v
+            - --keepalive=10s
+            - --tls-skip-verify
+            - https://chisel-server.lan
+            - R:1111:kubernetes.default.svc.cluster.local:443
+          env:
+            - name: AUTH
+              value: "client-1:client-1"
+---
+## BELOW auto-generated from script generate-manifest.sh

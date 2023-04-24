@@ -1,0 +1,5 @@
+echo -n 'user' | base64
+echo -n 'password' | base64
+
+curl -X POST -u 'user:password' "http://192.168.1.172:8080/create" -d '{"param": "your_parameter_value"}' -H "Content-Type: application/json"
+curl -u 'user:password' -X POST -H "Content-Type: application/json" -d '{"edge_cluster_name": "my-cluster"}' http://192.168.1.172:8080/create

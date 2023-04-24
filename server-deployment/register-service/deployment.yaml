@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: chisel-register
+  name: chisel-register
+  namespace: chisel-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chisel-register
+  template:
+    metadata:
+      labels:
+        app: chisel-register
+      name: chisel-register
+    spec:
+      containers:
+      - args:
+        - server
+        - -v
+        - --port=80
+        - --socks5
+        - --keepalive=10s
+        - --authfile=/auth/users.json
+        image: jpillora/chisel
+        imagePullPolicy: IfNotPresent
+        name: chisel-register
+        volumeMounts:
+          - name: users
+            mountPath: "/auth/"
+            readOnly: true
+      volumes:
+      - name: users
+        secret:
+          secretName: users
