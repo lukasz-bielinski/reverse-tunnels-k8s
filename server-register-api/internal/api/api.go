@@ -88,7 +88,7 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := fmt.Sprintf("\nYour manifest can be downloaded from http://192.168.1.172/%s.yaml" +
-		"\nYou can access your cluster under curl -k -H \"Authorization:Bearer $TOKEN\" -s https://chisel-tunnel.lan/%s/api/v1/namespaces/kube-system/pods  | jq '.items[].metadata.name', %s\n", createRequest.EdgeClusterName, edgeClusterInfo.ExposeName)
+		"\nYou can access your cluster under curl -k -H \"Authorization:Bearer $TOKEN\" -s https://chisel-tunnel.lan/%s/api/v1/namespaces/kube-system/pods  | jq '.items[].metadata.name'\n", createRequest.EdgeClusterName, edgeClusterInfo.ExposeName)
 
 	fmt.Fprint(w, response)
 
