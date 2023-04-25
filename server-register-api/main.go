@@ -4,9 +4,9 @@ import (
     "log"
     "net/http"
 
-    "github.com/gorilla/mux"
     "chisel-api/internal/api"
     "chisel-api/internal/k8s"
+    "github.com/gorilla/mux"
 )
 
 func main() {

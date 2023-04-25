@@ -6,6 +6,7 @@
         <entryData>
           <resourceRoots>
             <path value="file://$PROJECT_DIR$/server-register-api" />
+            <path value="file://$PROJECT_DIR$/server-register-api/internal" />
           </resourceRoots>
         </entryData>
       </entry>
