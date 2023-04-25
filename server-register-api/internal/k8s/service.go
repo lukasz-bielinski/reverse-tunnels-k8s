@@ -29,7 +29,7 @@ func CreateService(createRequestName string, edgeClusterInfoPort int) error {
 			Name:      createRequestName,
 			Namespace: namespace,
 			Annotations: map[string]string{
-				"traefik.ingress.kubernetes.io/service.serversscheme":       "https",
+				"traefik.ingress.kubernetes.io/service.serversscheme":    "https",
 				"traefik.ingress.kubernetes.io/service.serverstransport": "chisel-server-tunnel-transport@kubernetescrd",
 			},
 		},

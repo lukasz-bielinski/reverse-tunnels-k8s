@@ -71,7 +71,6 @@ func EnsureEdgeClusterInfoCRD() error {
 							},
 						},
 					},
-
 				},
 			},
 		},
