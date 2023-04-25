@@ -2,12 +2,12 @@ package k8s
 import (
 	"context"
 	"fmt"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"log"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
+	"log"
 )
 
 func CreateMiddleware(edgeClusterName, exposeName, namespace string) error {
