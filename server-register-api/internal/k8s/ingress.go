@@ -22,8 +22,8 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 				"name":      edgeClusterName,
 				"namespace": namespace,
 				"annotations": map[string]interface{}{
-					"cert-manager.io/cluster-issuer":             "self-signed-issuer",
-					"kubernetes.io/ingress.class":                "traefik",
+					"cert-manager.io/cluster-issuer":                   "self-signed-issuer",
+					"kubernetes.io/ingress.class":                      "traefik",
 					"traefik.ingress.kubernetes.io/router.middlewares": "chisel-server-" + edgeClusterName + "@kubernetescrd",
 				},
 			},
@@ -34,7 +34,7 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 						"http": map[string]interface{}{
 							"paths": []map[string]interface{}{
 								{
-									"path": "/"+exposeName,
+									"path":     "/" + exposeName,
 									"pathType": "Prefix",
 									"backend": map[string]interface{}{
 										"service": map[string]interface{}{

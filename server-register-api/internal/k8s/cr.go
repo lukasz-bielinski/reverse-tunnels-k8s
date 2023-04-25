@@ -15,8 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
-
-
 )
 
 const (
@@ -25,15 +23,12 @@ const (
 	exposeNameLen = 10
 )
 
-
-
 type EdgeClusterInfo struct {
-	Name        string `json:"name"`
-	Port        int    `json:"port"`
-	ExposeName  string `json:"expose_name"`
-	Namespace   string `json:"namespace"`
+	Name       string `json:"name"`
+	Port       int    `json:"port"`
+	ExposeName string `json:"expose_name"`
+	Namespace  string `json:"namespace"`
 }
-
 
 func CreateEdgeClusterInfo(edgeClusterName string) error {
 	config, err := rest.InClusterConfig()
@@ -117,14 +112,11 @@ func GetEdgeClusterInfo(edgeClusterName string) (EdgeClusterInfo, error) {
 	edgeClusterInfo := EdgeClusterInfo{
 		Port:       port,
 		ExposeName: exposeName,
-		Namespace: namespace,
+		Namespace:  namespace,
 	}
 
 	return edgeClusterInfo, nil
 }
-
-
-
 
 func generateUniquePort(dynamicClient dynamic.Interface, edgeClusterInfoGVR schema.GroupVersionResource, namespace string) (int, error) {
 	rand.Seed(time.Now().UnixNano())
@@ -167,4 +159,3 @@ func generateRandomString(length int) string {
 	guid := xid.New()
 	return strings.ToLower(guid.String()[:length])
 }
-

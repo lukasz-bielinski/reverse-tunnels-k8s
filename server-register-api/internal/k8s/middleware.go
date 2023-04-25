@@ -1,4 +1,5 @@
 package k8s
+
 import (
 	"context"
 	"fmt"
@@ -39,7 +40,6 @@ func CreateMiddleware(edgeClusterName, exposeName, namespace string) error {
 	if err != nil {
 		return err
 	}
-
 
 	middlewareGVR := schema.GroupVersionResource{
 		Group:    "traefik.containo.us",
