@@ -17,6 +17,7 @@ func main() {
 
     router := mux.NewRouter()
     router.HandleFunc("/create", api.BasicAuth(api.CreateHandler)).Methods("POST")
+    router.HandleFunc("/create-kubeconfig", api.BasicAuth(api.CreateHandler)).Methods("POST")
 
     httpPort := "8080"
     log.Printf("Starting server on port %s...", httpPort)

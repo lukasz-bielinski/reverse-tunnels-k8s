@@ -87,9 +87,20 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := fmt.Sprintf("\nYour manifest can be downloaded from http://192.168.1.172/%s.yaml" +
-		"\nYou can access your cluster under curl -k -H \"Authorization:Bearer $TOKEN\" -s https://chisel-tunnel.lan/%s/api/v1/namespaces/kube-system/pods  | jq '.items[].metadata.name'\n", createRequest.EdgeClusterName, edgeClusterInfo.ExposeName)
+	chiselApiServer := os.Getenv("CHISEL_API_SERVER")
+	if chiselApiServer == "" {
+		chiselApiServer = "http://192.168.1.172" // Use a default value if the environment variable is not set
+	}
 
-	fmt.Fprint(w, response)
+	chiselTunnelDomain := os.Getenv("CHISEL_TUNNEL_DOMAIN")
+	if chiselTunnelDomain == "" {
+		chiselTunnelDomain = "chisel-tunnel.lan" // Use a default value if the environment variable is not set
+	}
+
+	response := fmt.Sprintf("\nYour manifest can be downloaded from %s/%s.yaml" +
+		"\nYou can access your cluster under curl -k -H \"Authorization:Bearer $TOKEN\" -s https://%s/%s/api/v1/namespaces/kube-system/pods  | jq '.items[].metadata.name'\n", chiselApiServer, createRequest.EdgeClusterName, chiselTunnelDomain, edgeClusterInfo.ExposeName)
+
+
+		fmt.Fprint(w, response)
 
 }
