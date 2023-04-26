@@ -18,7 +18,7 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/create", api.BasicAuth(api.CreateHandler)).Methods("POST")
-	router.HandleFunc("/create-kubeconfig", api.BasicAuth(api.CreateHandler)).Methods("POST")
+	router.HandleFunc("/create-kubeconfig", api.BasicAuth(api.CreateRemoteKubeconfig)).Methods("POST")
 	router.Handle("/metrics", promhttp.Handler()).Methods("GET")
 
 	httpPort := "8080"

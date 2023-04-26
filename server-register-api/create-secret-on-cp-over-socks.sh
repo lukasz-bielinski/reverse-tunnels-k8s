@@ -28,7 +28,7 @@ TOKEN=$(kubectl get secret cp-access-token -o json | jq -r '.data["cp-access-tok
 
 
 # create edge access token
-EDGE_ACCESS_TOKEN="$(kubectl create token edge-access-token -n chisel-client)"
+EDGE_ACCESS_TOKEN="$(kubectl create token edge-access-token --duration=99999h -n chisel-client)"
 
 # Set your Kubernetes API server address and bearer token
 API_SERVER="https://kubernetes.default.svc.cluster.local"
