@@ -41,6 +41,8 @@ spec:
               value: http://192.168.1.172
             - name: CHISEL_TUNNEL_DOMAIN
               value: chisel-tunnel.lan
+            - name: NAMESPACE
+              value: chisel-server
         - name: nginx
           image: nginx
           volumeMounts:
@@ -48,6 +50,20 @@ spec:
               mountPath: /usr/share/nginx/html
           ports:
             - containerPort: 80
+---
+## list of users/passwords for api server
+apiVersion: v1
+kind: Secret
+metadata:
+  name: basic-auth-users
+  namespace: chisel-server
+type: Opaque
+stringData:
+  user1: password1
+  user2: password2
+  user3: password3
+  admin: admin
+
 ---
 apiVersion: v1
 kind: Service

@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o api main.go
+RUN go build -ldflags="-s -w" -p 8 -o api main.go
 
 # Final stage
 FROM alpine:latest
@@ -23,6 +23,8 @@ RUN apk add --no-cache ca-certificates bash curl sed libc6-compat && \
 
 # Copy binary and bash scripts
 COPY --from=builder /app/api /app/api
+
+COPY create-secret-on-cp-over-socks.sh generate-manifests.sh template-manifest-for-edge.yaml /app/
 COPY create-secret-on-cp-over-socks.sh /app/create-secret-on-cp-over-socks.sh
 COPY generate-manifests.sh /app/generate-manifests.sh
 COPY template-manifest-for-edge.yaml /app/template-manifest-for-edge.yaml
