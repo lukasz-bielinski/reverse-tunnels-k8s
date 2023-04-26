@@ -19,7 +19,7 @@ spec:
           emptyDir: {}
       containers:
         - name: api
-          image: lukaszbielinski/chisel-register-api
+          image: lukaszbielinski/chisel-register-api:0.1
           imagePullPolicy: Always
           volumeMounts:
             - name: shared-data
