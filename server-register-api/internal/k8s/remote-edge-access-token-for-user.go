@@ -3,10 +3,10 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	authenticationv1 "k8s.io/api/authentication/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
-	"io/ioutil"
 )
 
 func CreateRemoteTokenForUser(edgeClusterName string, edgeClusterPort int, tokenSecretName string) (string, error) {
@@ -29,7 +29,6 @@ func CreateRemoteTokenForUser(edgeClusterName string, edgeClusterPort int, token
 	serviceAccountName := edgeClusterName + "-cp-access"
 	expiresIn := time.Minute * 60 // 1-hour token expiration
 	namespace := "default"
-
 
 	// Create a new TokenRequest for the service account
 	tokenRequest := &authenticationv1.TokenRequest{
