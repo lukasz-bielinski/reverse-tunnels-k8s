@@ -9,10 +9,16 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"log"
+	"os"
+	"strings"
 )
 
 func CreateIngress(edgeClusterName, exposeName, namespace string, port int) error {
 	log.Printf("Creating Ingress: edgeClusterName=%s, exposeName=%s, namespace=%s\n", edgeClusterName, exposeName, namespace)
+
+	chiselTunnelDomain := os.Getenv("CHISEL_TUNNEL_DOMAIN")
+	suffixToRemove := ".lan"
+	chiselTunnelDomainshort := strings.TrimSuffix(chiselTunnelDomain, suffixToRemove)
 
 	ingressObj := &unstructured.Unstructured{
 		Object: map[string]interface{}{
@@ -30,7 +36,7 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 			"spec": map[string]interface{}{
 				"rules": []map[string]interface{}{
 					{
-						"host": "chisel-tunnel.lan",
+						"host": chiselTunnelDomain,
 						"http": map[string]interface{}{
 							"paths": []map[string]interface{}{
 								{
@@ -52,9 +58,9 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 				"tls": []map[string]interface{}{
 					{
 						"hosts": []string{
-							"chisel-tunnel",
+							chiselTunnelDomainshort,
 						},
-						"secretName": "chisel-tunnel",
+						"secretName": chiselTunnelDomainshort,
 					},
 				},
 			},
