@@ -43,7 +43,7 @@ spec:
               value: chisel-tunnel.lan
             - name: NAMESPACE
               value: chisel-server
-            - name: chiselTunnelHost
+            - name: CHISEL_TUNNEL_HOST
               value: yourchiseltunnelhost
         - name: nginx
           image: nginx
