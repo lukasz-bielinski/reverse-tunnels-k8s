@@ -74,6 +74,5 @@ func CreateRemoteKubeconfig(w http.ResponseWriter, r *http.Request) {
 
 	response := fmt.Sprintf("\nRemote kubeconfig created successfully\nYour can download your kubeconfig here: %s/%s-kubeconfig.yaml", chiselApiServer, createRequest.EdgeClusterName)
 
-
 	fmt.Fprint(w, response)
 }
