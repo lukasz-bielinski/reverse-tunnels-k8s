@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -50,11 +51,29 @@ func CreateRemoteKubeconfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("Remote token for user created successfully: %s\n", token)
+	chiselTunnelDomain := os.Getenv("CHISEL_TUNNEL_DOMAIN")
+	if chiselTunnelDomain == "" {
+		chiselTunnelDomain = "chisel-tunnel.lan" // Use a default value if the environment variable is not set
+	}
+	// Invoke GenerateKubeConfig
+	kubeConfig := k8s.GenerateKubeConfig(createRequest.EdgeClusterName, chiselTunnelDomain, edgeClusterInfo.ExposeName, token)
 
-	// You can add more code here to perform other tasks related to creating the remote kubeconfig.
+	// Write the generated kubeconfig to a file
+	err = k8s.WriteKubeConfigToFile(kubeConfig, createRequest.EdgeClusterName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	chiselApiServer := os.Getenv("CHISEL_API_SERVER")
+	if chiselApiServer == "" {
+		chiselApiServer = "http://192.168.1.172" // Use a default value if the environment variable is not set
+	}
 	// Send a success response
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Remote kubeconfig created successfully"))
+
+	response := fmt.Sprintf("\nRemote kubeconfig created successfully\nYour can download your kubeconfig here: %s/%s-kubeconfig.yaml", chiselApiServer, createRequest.EdgeClusterName)
+
+
+	fmt.Fprint(w, response)
 }

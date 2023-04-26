@@ -36,7 +36,7 @@ func CreateRemoteServiceAccount(edgeClusterName string, edgeClusterPort int, tok
 	}
 
 	// Check if the service account already exists
-	_, err = client.CoreV1().ServiceAccounts("default").Get(context.Background(), "test", metav1.GetOptions{})
+	_, err = client.CoreV1().ServiceAccounts("default").Get(context.Background(), sa.Name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Create the service account if it doesn't exist
@@ -44,12 +44,12 @@ func CreateRemoteServiceAccount(edgeClusterName string, edgeClusterPort int, tok
 			if err != nil {
 				return err
 			}
-			fmt.Println("Service account 'test' created successfully.")
+			fmt.Printf("Service account '%s' created successfully.\n", sa.Name)
 		} else {
 			return err
 		}
 	} else {
-		fmt.Println("Service account 'test' already exists.")
+		fmt.Printf("Service account '%s' already exists.\n", sa.Name)
 	}
 
 	return nil
