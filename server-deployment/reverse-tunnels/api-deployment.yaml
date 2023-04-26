@@ -27,16 +27,6 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: api-auth
-                  key: USERNAME
-            - name: PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: api-auth
-                  key: PASSWORD
             - name: CHISEL_API_SERVER
               value: http://192.168.1.172
             - name: CHISEL_TUNNEL_DOMAIN
@@ -87,13 +77,4 @@ spec:
 
   type: LoadBalancer
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: api-auth
-  namespace: chisel-server
-type: Opaque
-data:
-  USERNAME: dXNlcg== # Replace with base64-encoded username
-  PASSWORD: cGFzc3dvcmQ= # Replace with base64-encoded password
----
+
