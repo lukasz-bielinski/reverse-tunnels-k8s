@@ -1,6 +1,5 @@
 package k8s
 
-
 import (
 	"context"
 	"fmt"
@@ -9,11 +8,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-
 )
 
 // CreateRemoteServiceAccount creates a service account named 'test' on the remote Kubernetes cluster
-	func CreateRemoteServiceAccount(edgeClusterName string, edgeClusterPort int, tokenSecretName string) error {
+func CreateRemoteServiceAccount(edgeClusterName string, edgeClusterPort int, tokenSecretName string) error {
 	// Retrieve the access token
 	accessToken, err := getAccessTokenFromTokenReview(tokenSecretName)
 	if err != nil {
@@ -32,7 +30,7 @@ import (
 	// Create the service account
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      edgeClusterName+"-cp-access",
+			Name:      edgeClusterName + "-cp-access",
 			Namespace: "default",
 		},
 	}
@@ -53,7 +51,6 @@ import (
 	} else {
 		fmt.Println("Service account 'test' already exists.")
 	}
-
 
 	return nil
 }
@@ -85,7 +82,6 @@ func getAccessTokenFromTokenReview(secretName string) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("access token not found in secret %s", secretName)
 	}
-
 
 	tokenString := string(accessTokenBytes)
 
@@ -129,4 +125,3 @@ func createKubernetesClient(apiURL, accessToken string) (*kubernetes.Clientset, 
 
 	return client, nil
 }
-

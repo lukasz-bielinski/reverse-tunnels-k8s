@@ -3,6 +3,7 @@ package api
 import (
 	"chisel-api/internal/k8s"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -42,6 +43,14 @@ func CreateRemoteKubeconfig(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	token, err := k8s.CreateRemoteTokenForUser(createRequest.EdgeClusterName, edgeClusterInfo.Port, createRequest.EdgeClusterName+"-token")
+	if err != nil {
+		fmt.Printf("Error creating remote token for user: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Remote token for user created successfully: %s\n", token)
 
 	// You can add more code here to perform other tasks related to creating the remote kubeconfig.
 
