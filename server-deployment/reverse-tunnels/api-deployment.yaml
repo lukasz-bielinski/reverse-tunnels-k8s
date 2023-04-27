@@ -30,11 +30,15 @@ spec:
             - name: CHISEL_API_SERVER
               value: http://192.168.1.172
             - name: CHISEL_TUNNEL_DOMAIN
-              value: chisel-tunnel.lan
+              value: https://chisel-tunnel.lan
+              # domain where edges are registering
+            - name: CHISEL_REGISTER_DOMAIN
+              value: https://chisel-register.lan
             - name: NAMESPACE
               value: chisel-server
+              # chisel tunnel host in ingress
             - name: CHISEL_TUNNEL_HOST
-              value: yourchiseltunnelhost
+              value: chisel-tunnel
         - name: nginx
           image: nginx
           volumeMounts:

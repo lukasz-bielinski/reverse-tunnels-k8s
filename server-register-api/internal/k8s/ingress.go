@@ -18,6 +18,15 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 	chiselTunnelDomain := os.Getenv("CHISEL_TUNNEL_DOMAIN")
 	chiselTunnelHost := os.Getenv("CHISEL_TUNNEL_HOST")
 
+	certManagerClusterIssuer := os.Getenv("CERT_MANAGER_CLUSTER_ISSUER")
+	if certManagerClusterIssuer == "" {
+		certManagerClusterIssuer = "self-signed-issuer" // Use a default value if the environment variable is not set
+	}
+	chiselTunnelHost := os.Getenv("CHISEL_TUNNEL_HOST")
+	if chiselTunnelHost == "" {
+		chiselTunnelHost = "chisel-tunnel" // Use a default value if the environment variable is not set
+	}
+
 	ingressObj := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "networking.k8s.io/v1",
@@ -26,7 +35,7 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 				"name":      edgeClusterName,
 				"namespace": namespace,
 				"annotations": map[string]interface{}{
-					"cert-manager.io/cluster-issuer":                   "self-signed-issuer",
+					"cert-manager.io/cluster-issuer":                   certManagerClusterIssuer,
 					"kubernetes.io/ingress.class":                      "traefik",
 					"traefik.ingress.kubernetes.io/router.middlewares": "chisel-server-" + edgeClusterName + "@kubernetescrd",
 				},
@@ -58,7 +67,7 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 						"hosts": []string{
 							chiselTunnelHost,
 						},
-						"secretName": "chisel-tunnel",
+						"secretName": chiselTunnelHost,
 					},
 				},
 			},

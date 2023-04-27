@@ -33,6 +33,19 @@ func init() {
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	createRequestsTotal.Inc()
 
+	chiselApiServer := os.Getenv("CHISEL_API_SERVER")
+	if chiselApiServer == "" {
+		chiselApiServer = "http://192.168.1.172" // Use a default value if the environment variable is not set
+	}
+
+	chiselTunnelDomain := os.Getenv("CHISEL_TUNNEL_DOMAIN")
+	if chiselTunnelDomain == "" {
+		chiselTunnelDomain = "chisel-tunnel.lan" // Use a default value if the environment variable is not set
+	}
+	chiselRegisterDomain := os.Getenv("CHISEL_REGISTER_DOMAIN")
+	if chiselRegisterDomain == "" {
+		chiselRegisterDomain = "https://chisel-register.lan" // Use a default value if the environment variable is not set
+	}
 	var createRequest CreateRequest
 	err := json.NewDecoder(r.Body).Decode(&createRequest)
 	if err != nil {
@@ -86,7 +99,7 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//outputFile := fmt.Sprintf("%s.yaml", createRequest.EdgeClusterName)
-	cmd := exec.Command("bash", "/app/generate-manifests.sh", createRequest.EdgeClusterName, strconv.Itoa(edgeClusterInfo.Port))
+	cmd := exec.Command("bash", "/app/generate-manifests.sh", createRequest.EdgeClusterName, strconv.Itoa(edgeClusterInfo.Port), chiselRegisterDomain, chiselTunnelDomain)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
@@ -96,18 +109,10 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	chiselApiServer := os.Getenv("CHISEL_API_SERVER")
-	if chiselApiServer == "" {
-		chiselApiServer = "http://192.168.1.172" // Use a default value if the environment variable is not set
-	}
 
-	chiselTunnelDomain := os.Getenv("CHISEL_TUNNEL_DOMAIN")
-	if chiselTunnelDomain == "" {
-		chiselTunnelDomain = "chisel-tunnel.lan" // Use a default value if the environment variable is not set
-	}
 
 	response := fmt.Sprintf("\nYour manifest can be downloaded from %s/%s.yaml"+
-		"\nYou can access your cluster under curl -k -H \"Authorization:Bearer $TOKEN\" -s https://%s/%s/api/v1/namespaces/kube-system/pods  | jq '.items[].metadata.name'\n", chiselApiServer, createRequest.EdgeClusterName, chiselTunnelDomain, edgeClusterInfo.ExposeName)
+		"\nYou can access your cluster under curl -k -H \"Authorization:Bearer $TOKEN\" -s %s/%s/api/v1/namespaces/kube-system/pods  | jq '.items[].metadata.name'\n", chiselApiServer, createRequest.EdgeClusterName, chiselTunnelDomain, edgeClusterInfo.ExposeName)
 
 	fmt.Fprint(w, response)
 

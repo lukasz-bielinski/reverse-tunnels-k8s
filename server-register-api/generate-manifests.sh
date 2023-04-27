@@ -2,12 +2,16 @@ WEB_STORAGE="/data/"
 
 EDGE_CLUSTER_NAME=$1
 EXPOSE_PORT=$2
+CHISEL_REGISTER_DOMAIN=$3
+CHISEL_TUNNEL_DOMAIN=$4
 
 echo > $EDGE_CLUSTER_NAME.yaml ||true
 
 cp template-manifest-for-edge.yaml $WEB_STORAGE/$EDGE_CLUSTER_NAME.yaml
 sed -i "s/<<--EXPOSE-PORT-->>/$EXPOSE_PORT/g"  $WEB_STORAGE/$EDGE_CLUSTER_NAME.yaml
 sed -i "s/<<--EDGE-CLUSTER-NAME-->>/$EDGE_CLUSTER_NAME/g"  $WEB_STORAGE/$EDGE_CLUSTER_NAME.yaml
+sed -i "s/<<--CHISEL_REGISTER_DOMAIN-->>/$CHISEL_REGISTER_DOMAIN/g"  $WEB_STORAGE/$EDGE_CLUSTER_NAME.yaml
+sed -i "s/<<--CHISEL_TUNNEL_DOMAIN-->>/$CHISEL_TUNNEL_DOMAIN/g"  $WEB_STORAGE/$EDGE_CLUSTER_NAME.yaml
 
 CHISEL_REGISTER_TOKEN=$(kubectl create token  chisel-register-sa --duration=17h -n chisel-server)
 
