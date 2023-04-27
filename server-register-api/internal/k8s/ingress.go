@@ -24,6 +24,10 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 	if chiselTunnelHost == "" {
 		chiselTunnelHost = "chisel-tunnel" // Use a default value if the environment variable is not set
 	}
+	chiselTunnelDomain := os.Getenv("CHISEL_TUNNEL_DOMAIN")
+	if chiselTunnelDomain == "" {
+		chiselTunnelDomain = "https://chisel-tunnel.lan" // Use a default value if the environment variable is not set
+	}
 
 	ingressObj := &unstructured.Unstructured{
 		Object: map[string]interface{}{
@@ -41,7 +45,7 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 			"spec": map[string]interface{}{
 				"rules": []map[string]interface{}{
 					{
-						"host": chiselTunnelHost,
+						"host": chiselTunnelHost+".lan",
 						"http": map[string]interface{}{
 							"paths": []map[string]interface{}{
 								{

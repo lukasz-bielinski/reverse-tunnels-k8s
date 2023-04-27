@@ -46,6 +46,10 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	if chiselRegisterDomain == "" {
 		chiselRegisterDomain = "https://chisel-register.lan" // Use a default value if the environment variable is not set
 	}
+	chiselServerDomain := os.Getenv("CHISEL_SERVER_DOMAIN")
+	if chiselServerDomain == "" {
+		chiselServerDomain = "https://chisel-server.lan" // Use a default value if the environment variable is not set
+	}
 	var createRequest CreateRequest
 	err := json.NewDecoder(r.Body).Decode(&createRequest)
 	if err != nil {
@@ -99,7 +103,7 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//outputFile := fmt.Sprintf("%s.yaml", createRequest.EdgeClusterName)
-	cmd := exec.Command("bash", "/app/generate-manifests.sh", createRequest.EdgeClusterName, strconv.Itoa(edgeClusterInfo.Port), chiselRegisterDomain, chiselTunnelDomain)
+	cmd := exec.Command("bash", "/app/generate-manifests.sh", createRequest.EdgeClusterName, strconv.Itoa(edgeClusterInfo.Port), chiselRegisterDomain, chiselServerDomain)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()

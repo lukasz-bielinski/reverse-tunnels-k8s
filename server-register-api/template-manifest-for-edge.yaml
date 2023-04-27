@@ -28,7 +28,7 @@ spec:
             - -v
             - --keepalive=10s
             - --tls-skip-verify
-            - <<--CHISEL_REGISTER_DOMAIN-->>
+            - <<--CHISEL-REGISTER-DOMAIN-->>
             - 0.0.0.0:1080:socks
           env:
             - name: AUTH
@@ -138,7 +138,7 @@ spec:
             - -v
             - --keepalive=10s
             - --tls-skip-verify
-            - <<--CHISEL_TUNNEL_DOMAIN-->>
+            - <<--CHISEL-SERVER-DOMAIN-->>
             - R:<<--EXPOSE-PORT-->>:kubernetes.default.svc.cluster.local:443
           env:
             - name: AUTH
