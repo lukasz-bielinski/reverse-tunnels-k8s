@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/rest"
 	"log"
 	"os"
+	"net/url"
 )
 
 func CreateIngress(edgeClusterName, exposeName, namespace string, port int) error {
@@ -29,6 +30,14 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 		chiselTunnelDomain = "https://chisel-tunnel.lan" // Use a default value if the environment variable is not set
 	}
 
+	parsedURL, err := url.Parse(chiselTunnelDomain)
+	if err != nil {
+		fmt.Println("Error parsing URL:", err)
+		return err
+	}
+	host := parsedURL.Host
+
+
 	ingressObj := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "networking.k8s.io/v1",
@@ -45,7 +54,7 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 			"spec": map[string]interface{}{
 				"rules": []map[string]interface{}{
 					{
-						"host": chiselTunnelHost+".lan",
+						"host": host,
 						"http": map[string]interface{}{
 							"paths": []map[string]interface{}{
 								{
