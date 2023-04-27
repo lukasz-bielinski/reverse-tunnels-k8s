@@ -72,7 +72,7 @@ users:
     token: %s
 `
 
-	serverURL := fmt.Sprintf("https://%s/%s/", chiselTunnelDomain, exposeName)
+	serverURL := fmt.Sprintf("%s/%s/", chiselTunnelDomain, exposeName)
 
 	kubeConfig := fmt.Sprintf(
 		kubeConfigTemplate,

@@ -27,14 +27,23 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            # addres of chisel api
             - name: CHISEL_API_SERVER
               value: http://192.168.1.172
+              # address where on control plane are exposed reverse tunnels
             - name: CHISEL_TUNNEL_DOMAIN
-              value: chisel-tunnel.lan
+              value: https://chisel-tunnel.lan
+              # domain where edges are registering
+            - name: CHISEL_REGISTER_DOMAIN
+              value: https://chisel-register.lan
+              # domain where chisel clients are connecting
+            - name: CHISEL_SERVER_DOMAIN
+              value: https://chisel-server.lan
             - name: NAMESPACE
               value: chisel-server
+              # chisel tunnel host in ingress, needed for certificate
             - name: CHISEL_TUNNEL_HOST
-              value: yourchiseltunnelhost
+              value: chisel-tunnel
         - name: nginx
           image: nginx
           volumeMounts:

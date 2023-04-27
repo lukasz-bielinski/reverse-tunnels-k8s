@@ -15,8 +15,19 @@ import (
 func CreateIngress(edgeClusterName, exposeName, namespace string, port int) error {
 	log.Printf("Creating Ingress: edgeClusterName=%s, exposeName=%s, namespace=%s\n", edgeClusterName, exposeName, namespace)
 
-	chiselTunnelDomain := os.Getenv("CHISEL_TUNNEL_DOMAIN")
+
+	certManagerClusterIssuer := os.Getenv("CERT_MANAGER_CLUSTER_ISSUER")
+	if certManagerClusterIssuer == "" {
+		certManagerClusterIssuer = "self-signed-issuer" // Use a default value if the environment variable is not set
+	}
 	chiselTunnelHost := os.Getenv("CHISEL_TUNNEL_HOST")
+	if chiselTunnelHost == "" {
+		chiselTunnelHost = "chisel-tunnel" // Use a default value if the environment variable is not set
+	}
+	chiselTunnelDomain := os.Getenv("CHISEL_TUNNEL_DOMAIN")
+	if chiselTunnelDomain == "" {
+		chiselTunnelDomain = "https://chisel-tunnel.lan" // Use a default value if the environment variable is not set
+	}
 
 	ingressObj := &unstructured.Unstructured{
 		Object: map[string]interface{}{
@@ -26,7 +37,7 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 				"name":      edgeClusterName,
 				"namespace": namespace,
 				"annotations": map[string]interface{}{
-					"cert-manager.io/cluster-issuer":                   "self-signed-issuer",
+					"cert-manager.io/cluster-issuer":                   certManagerClusterIssuer,
 					"kubernetes.io/ingress.class":                      "traefik",
 					"traefik.ingress.kubernetes.io/router.middlewares": "chisel-server-" + edgeClusterName + "@kubernetescrd",
 				},
@@ -34,7 +45,7 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 			"spec": map[string]interface{}{
 				"rules": []map[string]interface{}{
 					{
-						"host": chiselTunnelDomain,
+						"host": chiselTunnelHost+".lan",
 						"http": map[string]interface{}{
 							"paths": []map[string]interface{}{
 								{
@@ -58,7 +69,7 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 						"hosts": []string{
 							chiselTunnelHost,
 						},
-						"secretName": "chisel-tunnel",
+						"secretName": chiselTunnelHost,
 					},
 				},
 			},
