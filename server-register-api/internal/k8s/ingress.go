@@ -15,8 +15,6 @@ import (
 func CreateIngress(edgeClusterName, exposeName, namespace string, port int) error {
 	log.Printf("Creating Ingress: edgeClusterName=%s, exposeName=%s, namespace=%s\n", edgeClusterName, exposeName, namespace)
 
-	chiselTunnelDomain := os.Getenv("CHISEL_TUNNEL_DOMAIN")
-	chiselTunnelHost := os.Getenv("CHISEL_TUNNEL_HOST")
 
 	certManagerClusterIssuer := os.Getenv("CERT_MANAGER_CLUSTER_ISSUER")
 	if certManagerClusterIssuer == "" {
@@ -43,7 +41,7 @@ func CreateIngress(edgeClusterName, exposeName, namespace string, port int) erro
 			"spec": map[string]interface{}{
 				"rules": []map[string]interface{}{
 					{
-						"host": chiselTunnelDomain,
+						"host": chiselTunnelHost,
 						"http": map[string]interface{}{
 							"paths": []map[string]interface{}{
 								{
